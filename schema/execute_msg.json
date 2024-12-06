@@ -1,15 +1,51 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
-        "increment"
+        "create_offer"
       ],
       "properties": {
-        "increment": {
-          "type": "object"
+        "create_offer": {
+          "type": "object",
+          "required": [
+            "amount",
+            "crypto_type",
+            "max_trade_limit",
+            "min_trade_limit",
+            "payment_methods",
+            "price_per_unit"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "crypto_type": {
+              "type": "string"
+            },
+            "max_trade_limit": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "min_trade_limit": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "payment_methods": {
+              "type": "string"
+            },
+            "price_per_unit": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            }
+          }
         }
       },
       "additionalProperties": false
@@ -17,18 +53,125 @@
     {
       "type": "object",
       "required": [
-        "reset"
+        "initiate_trade"
       ],
       "properties": {
-        "reset": {
+        "initiate_trade": {
           "type": "object",
           "required": [
-            "count"
+            "amount",
+            "offer_id",
+            "payment_method"
           ],
           "properties": {
-            "count": {
+            "amount": {
               "type": "integer",
-              "format": "int32"
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "offer_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "payment_method": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "confirm_payment"
+      ],
+      "properties": {
+        "confirm_payment": {
+          "type": "object",
+          "required": [
+            "trade_id"
+          ],
+          "properties": {
+            "trade_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "release_funds"
+      ],
+      "properties": {
+        "release_funds": {
+          "type": "object",
+          "required": [
+            "trade_id"
+          ],
+          "properties": {
+            "trade_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "dispute_trade"
+      ],
+      "properties": {
+        "dispute_trade": {
+          "type": "object",
+          "required": [
+            "reason",
+            "trade_id"
+          ],
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "trade_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "resolve_dispute"
+      ],
+      "properties": {
+        "resolve_dispute": {
+          "type": "object",
+          "required": [
+            "trade_id",
+            "winner"
+          ],
+          "properties": {
+            "trade_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "winner": {
+              "type": "string"
             }
           }
         }

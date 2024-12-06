@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TradesListResponse",
+  "type": "object",
+  "required": [
+    "trades"
+  ],
+  "properties": {
+    "trades": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          {
+            "$ref": "#/definitions/Trade"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
+    }
+  },
+  "definitions": {
+    "Trade": {
+      "type": "object",
+      "required": [
+        "amount",
+        "buyer",
+        "created_at",
+        "disputed",
+        "offer_id",
+        "payment_method",
+        "seller",
+        "status"
+      ],
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "buyer": {
+          "type": "string"
+        },
+        "completed_at": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "disputed": {
+          "type": "boolean"
+        },
+        "offer_id": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "payment_confirmed_at": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "payment_method": {
+          "type": "string"
+        },
+        "seller": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/TradeStatus"
+        }
+      }
+    },
+    "TradeStatus": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "PaymentSent",
+        "Completed",
+        "Disputed",
+        "Cancelled",
+        "Resolved"
+      ]
+    }
+  }
+}

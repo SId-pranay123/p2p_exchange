@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OffersListResponse",
+  "type": "object",
+  "required": [
+    "offers"
+  ],
+  "properties": {
+    "offers": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          {
+            "$ref": "#/definitions/Offer"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
+    }
+  },
+  "definitions": {
+    "Offer": {
+      "type": "object",
+      "required": [
+        "amount",
+        "created_at",
+        "crypto_type",
+        "max_trade_limit",
+        "min_trade_limit",
+        "payment_methods",
+        "price_per_unit",
+        "seller",
+        "status"
+      ],
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "crypto_type": {
+          "type": "string"
+        },
+        "max_trade_limit": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "min_trade_limit": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "payment_methods": {
+          "type": "string"
+        },
+        "price_per_unit": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "seller": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/OfferStatus"
+        }
+      }
+    },
+    "OfferStatus": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "InTrade",
+        "Completed",
+        "Cancelled"
+      ]
+    }
+  }
+}
