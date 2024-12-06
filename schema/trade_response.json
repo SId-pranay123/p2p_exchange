@@ -22,6 +22,7 @@
       "required": [
         "amount",
         "buyer",
+        "buyer_escrow_funded",
         "created_at",
         "disputed",
         "offer_id",
@@ -37,6 +38,9 @@
         },
         "buyer": {
           "type": "string"
+        },
+        "buyer_escrow_funded": {
+          "type": "boolean"
         },
         "completed_at": {
           "type": [

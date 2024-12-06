@@ -113,6 +113,8 @@ pub struct Trade {
     pub payment_confirmed_at: Option<u64>,
     pub completed_at: Option<u64>,
     pub disputed: bool,
+    // New field to track if buyer's escrow is funded
+    pub buyer_escrow_funded: bool,  
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

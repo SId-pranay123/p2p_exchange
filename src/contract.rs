@@ -320,13 +320,20 @@ fn execute_create_offer(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    crypto_type: String,
+    _crypto_type: String,
     amount: u128,
     price_per_unit: u128,
     payment_methods: String,
     min_trade_limit: u128,
     max_trade_limit: u128,
 ) -> Result<Response, ContractError> {
+    if info.funds.len() != 1 {
+        return Err(ContractError::Std(cosmwasm_std::StdError::generic_err("Must send exactly one type of token")));
+    }
+    let sent = &info.funds[0];
+    if sent.amount.u128() != amount {
+        return Err(ContractError::Std(cosmwasm_std::StdError::generic_err("Must send exact amount of crypto")));
+    }
     if min_trade_limit > max_trade_limit || amount < min_trade_limit {
         return Err(ContractError::InvalidTradeAmount {});
     }
@@ -337,7 +344,7 @@ fn execute_create_offer(
 
     let offer = Offer {
         seller: info.sender.to_string(),
-        crypto_type,
+        crypto_type: sent.denom.clone(),
         amount,
         price_per_unit,
         payment_methods,
@@ -370,6 +377,21 @@ fn execute_initiate_trade(
         return Err(ContractError::InvalidTradeAmount {});
     }
 
+    // Calculate payment required from buyer
+    let required_payment = amount.checked_mul(offer.price_per_unit).ok_or(ContractError::InvalidTradeAmount {})?;
+
+    // Check buyer funds
+    if info.funds.len() != 1 {
+        return Err(ContractError::Std(cosmwasm_std::StdError::generic_err("Must send exactly one type of token as payment")));
+    }
+
+    let payment = &info.funds[0];
+    // The buyer must send the right token type (e.g., stable token) 
+    // Let's assume the buyer pays in "ust" or some known denom. For simplicity, we just require correct amount:
+    if payment.amount.u128() != required_payment {
+        return Err(ContractError::Std(cosmwasm_std::StdError::generic_err("Incorrect payment amount sent")));
+    }
+
     // Deduct the trading amount from the offer
     offer.amount -= amount;
     // If after this trade initiation, offer has no more amount left, or we want to consider it "in trade"
@@ -394,6 +416,7 @@ fn execute_initiate_trade(
         payment_confirmed_at: None,
         completed_at: None,
         disputed: false,
+        buyer_escrow_funded: true,
     };
 
     TRADES.save(deps.storage, trade_seq.into(), &trade)?;
@@ -403,6 +426,8 @@ fn execute_initiate_trade(
         .add_attribute("trade_id", trade_seq.to_string()))
 }
 
+
+//Buyer confirms payment, After trade initiated
 fn execute_confirm_payment(
     deps: DepsMut,
     env: Env,
@@ -427,6 +452,7 @@ fn execute_confirm_payment(
         .add_attribute("trade_id", trade_id.to_string()))
 }
 
+//After Buyer confirms payment, contract will release funds
 fn execute_release_funds(
     deps: DepsMut,
     env: Env,
@@ -441,6 +467,37 @@ fn execute_release_funds(
         return Err(ContractError::NotSeller {});
     }
 
+    // Load the offer to know the crypto type
+    let offer = OFFERS.load(deps.storage, trade.offer_id)?;
+    let crypto_denom = offer.crypto_type;
+    let crypto_amount = trade.amount;
+    let payment_amount = trade.amount.checked_mul(offer.price_per_unit).ok_or(ContractError::InvalidTradeAmount {})?;
+    let seller_addr = deps.api.addr_validate(&trade.seller)?;
+    let buyer_addr = deps.api.addr_validate(&trade.buyer)?;
+
+    // Release buyer's payment to the seller
+    // Release seller's crypto to the buyer
+    // This involves sending BankMsg submessages:
+    use cosmwasm_std::{BankMsg, CosmosMsg, Uint128};
+
+    let msgs = vec![
+        CosmosMsg::Bank(BankMsg::Send {
+            to_address: buyer_addr.to_string(),
+            amount: vec![cosmwasm_std::Coin {
+                denom: crypto_denom.clone(),
+                amount: Uint128::from(crypto_amount),
+            }],
+        }),
+        CosmosMsg::Bank(BankMsg::Send {
+            to_address: seller_addr.to_string(),
+            amount: vec![cosmwasm_std::Coin {
+                denom: "ust".to_string(), // Assuming buyer paid in "ust"
+                amount: Uint128::from(payment_amount),
+            }],
+        })
+    ];
+
+
     // Here you would actually transfer funds. This is just changing state for demonstration.
     trade.status = TradeStatus::Completed;
     trade.completed_at = Some(env.block.time.seconds());
@@ -449,9 +506,12 @@ fn execute_release_funds(
 
     Ok(Response::new()
         .add_attribute("action", "release_funds")
-        .add_attribute("trade_id", trade_id.to_string()))
+        .add_attribute("trade_id", trade_id.to_string())
+        .add_messages(msgs))
 }
 
+
+//If not happy with trade buyer can create dispute
 fn execute_dispute_trade(
     deps: DepsMut,
     _env: Env,
