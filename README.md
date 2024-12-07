@@ -65,7 +65,152 @@ Implements:
 ## Usage 
 
 ### Instantiate the Contract
+1. Send an instantiation message to deploy the contract:
+   ```json
+   {
+     "admin": "optional_admin_address"
+   }
+   ```
 
-...To be Added 
+### Execute Messages 
+1. Create Offer
+   ```json
+   {
+      "create_offer": {
+         "crypto_type": "BTC",
+         "amount": 1000,
+         "price_per_unit": 50000,
+         "payment_methods": "BankTransfer",
+         "min_trade_limit": 100,
+         "max_trade_limit": 1000
+      }
+	}
+   ```
+2. Initiate Trade 
+   ```json
+   {
+	  "initiate_trade": {
+	    "offer_id": 1,
+	    "amount": 200,
+	    "payment_method": "BankTransfer"
+	  }
+	}
+   ```
+
+3. Confirm Paymet 
+   ```json
+   {
+	  "confirm_payment": {
+	    "trade_id": 1
+	  }
+	}
+   ```
+
+4. Release Fund
+   ```json 
+   {
+	  "release_funds": {
+	    "trade_id": 1
+	  }
+	}
+   ```
+
+5. Dispute Trade
+   ```json
+   {
+	  "dispute_trade": {
+	    "trade_id": 1,
+	    "reason": "Buyer claims non-receipt of crypto."
+	  }
+	}
+   ```
+
+6. Resolve Dispute 
+   ```json
+   {
+	  "resolve_dispute": {
+	    "trade_id": 1,
+	    "winner": "seller"
+	  }
+	}
+   ```
+
+### Query Messages 
+
+1. Get config
+   ```json 
+   {
+	  "get_config": {}
+	}
+   ```
+
+2. Get Offer
+   ```json
+   {
+	  "get_offer": {
+	    "offer_id": 1
+	  }
+	}
+   ```
+
+3. List Offers 
+   ```json
+   {
+	  "list_offers": {
+	    "start_after": null,
+	    "limit": 10
+	  }
+	}
+   ```
+
+4. Get Trade 
+   ```json
+   {
+	  "get_trade": {
+	    "trade_id": 1
+	  }
+	}
+   ```
+
+5. List Trades By Users
+   ```json
+   {
+	  "list_trades_by_user": {
+	    "user": "buyer_address",
+	    "start_after": null,
+	    "limit": 10
+	  }
+	}
+   ```
+
+## Testing 
+Unit tests are included in contract.rs. To run the tests:
+   ```bash
+   cargo test
+   ```
+
+## Contract State
+
+1. Config 
+   Stores the admin address of the contract.
+
+2. Offers
+   Stores cryptocurrency offers by sellers.
+
+3. Trades
+   Tracks trades initiated by buyers against seller offers.
+
+
+## Error Handling
+
+The contract includes custom error handling for:
+- Unauthorized actions.
+- Invalid trade amounts or statuses.
+- Trade and offer not found errors.
+
+## Pagination 
+
+Query responses like ListOffers and ListTradesByUser support optional pagination with start_after and limit parameters.
+
 
 
